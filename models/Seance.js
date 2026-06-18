@@ -16,7 +16,7 @@ const SeanceSchema = new mongoose.Schema({
   contenu: { type: String, default: '' },
   documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'DocPeda' }],
   travaux: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Travail' }],
-  source: { type: String, enum: ['ireo', 'manuel'], default: 'ireo' },
+  source: { type: String, enum: ['ireo', 'manuel', 'sheets'], default: 'ireo' },
   statut: { type: String, enum: ['saisi', 'a_completer'], default: 'a_completer' },
   ireo_uid: { type: String, default: '' }, // UID de l'événement iCal source
 }, { timestamps: true })

@@ -89,6 +89,17 @@ export default function AdminPage() {
         </p>
 
         <ActionCard
+          titre="🔧 Corriger index base de données"
+          description="À exécuter une seule fois si l'import Sheets échoue avec une erreur E11000. Supprime l'index unique sur ireo_uid."
+          bouton="🔧 Corriger index"
+          couleur="#6C3AAA"
+          onAction={() => action('fix_index', '/api/admin?action=drop-ireo-uid-index')}
+          loading={e('fix_index').loading}
+          resultat={e('fix_index').resultat}
+          erreur={e('fix_index').erreur}
+        />
+
+        <ActionCard
           titre="📋 Importer l'historique Google Sheets"
           description="Importe toutes les séances du cahier journal Google Sheets (novembre 2025 → juin 2026). Les séances existantes issues du Sheets seront remplacées."
           bouton="↺ Importer depuis Google Sheets"
@@ -97,6 +108,17 @@ export default function AdminPage() {
           loading={e('sheets').loading}
           resultat={e('sheets').resultat}
           erreur={e('sheets').erreur}
+        />
+
+        <ActionCard
+          titre="🔧 Corriger index base de données"
+          description="À exécuter une seule fois si l'import Sheets échoue avec une erreur E11000. Supprime l'index unique sur ireo_uid."
+          bouton="🔧 Corriger index"
+          couleur="#6C3AAA"
+          onAction={() => action('fix_index', '/api/admin?action=drop-ireo-uid-index')}
+          loading={e('fix_index').loading}
+          resultat={e('fix_index').resultat}
+          erreur={e('fix_index').erreur}
         />
 
         <ActionCard
@@ -111,6 +133,17 @@ export default function AdminPage() {
         />
 
         <ActionCard
+          titre="🔧 Corriger index base de données"
+          description="À exécuter une seule fois si l'import Sheets échoue avec une erreur E11000. Supprime l'index unique sur ireo_uid."
+          bouton="🔧 Corriger index"
+          couleur="#6C3AAA"
+          onAction={() => action('fix_index', '/api/admin?action=drop-ireo-uid-index')}
+          loading={e('fix_index').loading}
+          resultat={e('fix_index').resultat}
+          erreur={e('fix_index').erreur}
+        />
+
+        <ActionCard
           titre="📅 Importer iRéo — aujourd'hui seulement"
           description="Importe uniquement les séances du jour depuis iRéo. Utile pour le journal quotidien."
           bouton="↺ Importer iRéo aujourd'hui"
@@ -119,6 +152,17 @@ export default function AdminPage() {
           loading={e('ireo_today').loading}
           resultat={e('ireo_today').resultat}
           erreur={e('ireo_today').erreur}
+        />
+
+        <ActionCard
+          titre="🔧 Corriger index base de données"
+          description="À exécuter une seule fois si l'import Sheets échoue avec une erreur E11000. Supprime l'index unique sur ireo_uid."
+          bouton="🔧 Corriger index"
+          couleur="#6C3AAA"
+          onAction={() => action('fix_index', '/api/admin?action=drop-ireo-uid-index')}
+          loading={e('fix_index').loading}
+          resultat={e('fix_index').resultat}
+          erreur={e('fix_index').erreur}
         />
 
         <ActionCard

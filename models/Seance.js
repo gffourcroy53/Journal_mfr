@@ -25,6 +25,6 @@ const SeanceSchema = new mongoose.Schema({
 SeanceSchema.index({ date: 1 })
 SeanceSchema.index({ classe: 1, date: 1 })
 SeanceSchema.index({ type: 1, date: 1 })
-SeanceSchema.index({ ireo_uid: 1 }, { unique: true, sparse: true })
+SeanceSchema.index({ ireo_uid: 1 }, { sparse: true })
 
 export default mongoose.models.Seance || mongoose.model('Seance', SeanceSchema)

@@ -10,6 +10,7 @@ const NAV = [
   { href: '/documents',     label: 'Documents'       },
   { href: '/travaux',       label: 'Travaux'         },
   { href: '/exports',       label: 'Exports'         },
+  { href: '/admin',         label: '⚙️ Admin'         },
 ]
 
 export default function AppLayout({ children }) {

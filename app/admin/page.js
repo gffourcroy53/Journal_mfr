@@ -170,7 +170,7 @@ export default function AdminPage() {
           description="Supprime toutes les séances importées depuis iRéo (source = 'ireo'). Les séances saisies manuellement ou depuis le Sheets ne sont pas affectées."
           bouton="🗑️ Vider séances iRéo"
           couleur="#A93226"
-          onAction={() => actionDelete('reset', '/api/seances/reset')}
+          onAction={() => actionDelete('reset', '/api/reset-seances')}
           loading={e('reset').loading}
           resultat={e('reset').resultat}
           erreur={e('reset').erreur}

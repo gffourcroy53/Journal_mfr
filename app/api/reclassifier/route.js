@@ -2,62 +2,95 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Seance from '@/models/Seance'
 
-// Règles de reclassification des séances "Autre"
-const REGLES = [
-  // Classe + type basés sur la matière
-  { match: /TPE|Travaux pratiques encadrés/i,          classe: null, type: 'service' },
-  { match: /Evaluation Examen|Évaluation Examen/i,     classe: 'Jury', type: 'ccf' },
-  { match: /C\.5 Maintenance|Maintenance/i,            classe: 'BP CMA', type: 'cours' },
-  { match: /accompagnement/i,                          classe: null, type: 'cours' },
-  { match: /Serv.*Midi|Serv.*Matin/i,                  classe: 'Service', type: 'service' },
-  { match: /Serv.*Soir|Serv.*Veillées/i,               classe: 'Service', type: 'service' },
-  { match: /Récupération/i,                            classe: 'Récupération', type: 'recup' },
-  { match: /VIE DE GROUPE|Vie de groupe/i,             classe: 'CS PMATMHT', type: 'cours' },
-  { match: /BC1|HABITAT LOGEMENT/i,                    classe: 'BTS 1 ESF', type: 'cours' },
-  { match: /MP7|SCIENCES ET TECHNOLOGIQUES/i,          classe: 'A.E.1 A', type: 'cours' },
-  { match: /BC5|Robotisation/i,                        classe: 'BTS 1 GDEA', type: 'cours' },
-  { match: /Réunion|Conseil classe|conseil/i,          classe: 'Réunion', type: 'reunion' },
-  { match: /Intervention Externe|JURY MONTAUBAN/i,     classe: 'Intervention Externe', type: 'jury' },
-  { match: /Correction|Corrections/i,                  classe: 'Service', type: 'service' },
-  { match: /relecture|rangement|Préparation/i,         classe: 'Service', type: 'service' },
-  { match: /points? titre|mémoires/i,                  classe: 'Service', type: 'service' },
-  { match: /Trajet/i,                                  classe: 'Service', type: 'service' },
+// Règles de reclassification des séances classe=Service non institutionnelles
+const REGLES_SERVICE = [
+  // Vrais services institutionnels → on garde
+  { match: /Serv\s*:|Services?\s*(matin|midi|soir|veillées|veillee)/i, garder: true },
+  { match: /^Service (soir|veillées|matin|midi|veillee)/i, garder: true },
+  { match: /surveillance/i, garder: true },
+
+  // Évaluation examen → ccf, classe Jury
+  { match: /Évaluation|Evaluation|Examen/i, classe: 'Jury', type: 'ccf' },
+
+  // Préparation → préparation
+  { match: /Préparation|Preparation|prépa/i, classe: 'Préparation', type: 'service' },
+  { match: /Courses|rangement|Rangement/i, classe: 'Préparation', type: 'service' },
+
+  // Réservé visites → Visite de stage
+  { match: /Réservé visite|réservé visite/i, classe: 'Visite de stage', type: 'service' },
+
+  // Corrections → Correction
+  { match: /Correction|correction/i, classe: 'Correction', type: 'service' },
+
+  // CAP MFR → Formation externe
+  { match: /CAP MFR/i, classe: 'Formation externe', type: 'service' },
+
+  // Forum → Forum
+  { match: /Forum/i, classe: 'Forum', type: 'service' },
+
+  // Trajet réunion → Intervention externe
+  { match: /Trajet/i, classe: 'Intervention Externe', type: 'service' },
+
+  // Seconde MFR → Accompagnement
+  { match: /Seconde MFR|Seconde mfr/i, classe: 'Accompagnement', type: 'service' },
+
+  // RDV médical → Récupération
+  { match: /RDV médical|RDV medical|médical|Rendez-médical|Rendez.médical/i, classe: 'Récupération', type: 'recup' },
+
+  // Retours tracteurs, Livraison GNR → Préparation
+  { match: /Retours|Livraison/i, classe: 'Préparation', type: 'service' },
+
+  // Point mémoires, relecture → Correction
+  { match: /Point mémoires|relecture|Point correction|mémoires|Correction mémoires/i, classe: 'Correction', type: 'service' },
+
+  // Sortie CS → Accompagnement
+  { match: /Sortie CS/i, classe: 'Accompagnement', type: 'service' },
+
+  // Présentation kit → Préparation
+  { match: /Présentation kit|Presentation kit/i, classe: 'Préparation', type: 'service' },
+
+  // Service externe → Intervention Externe
+  { match: /Service externe/i, classe: 'Intervention Externe', type: 'service' },
+
+  // Services veillées / soir (format long) → garder Service
+  { match: /Services (veillées|soir|matin|veillee)/i, garder: true },
 ]
 
-export async function POST() {
+// POST /api/reclassifier — reclassifie les séances mal typées
+export async function POST(request) {
   try {
     await connectDB()
-    const seances = await Seance.find({ classe: 'Autre' })
+    const body = await request.json().catch(() => ({}))
+    const cible = body.classe || 'Service'
+
+    const seances = await Seance.find({ classe: cible })
 
     let corriges = 0
+    let gardes = 0
     let ignores = 0
 
     for (const s of seances) {
       const matiere = s.matiere || ''
-      let updated = false
+      let traite = false
 
-      for (const regle of REGLES) {
+      for (const regle of REGLES_SERVICE) {
         if (regle.match.test(matiere)) {
-          const update = { type: regle.type }
-          if (regle.classe) update.classe = regle.classe
-          // Pour TPE et accompagnement, on garde la classe existante (déjà Autre)
-          // mais on tente d'extraire depuis la matière
-          if (!regle.classe) {
-            // Extraire la classe depuis la matière si possible
-            const classeMatch = matiere.match(/(SAPAT\s*\d?|BTS\s*\d?\s*\w+|A\.E\.\s*\d|AE\s*\d|BP\s*CMA|CS\s*PMATMHT|CTCA|Sec\s*\w+)/i)
-            if (classeMatch) update.classe = classeMatch[1].trim()
-            else update.classe = 'Service'
+          if (regle.garder) {
+            gardes++
+          } else {
+            await Seance.findByIdAndUpdate(s._id, {
+              $set: { classe: regle.classe, type: regle.type }
+            })
+            corriges++
           }
-          await Seance.findByIdAndUpdate(s._id, { $set: update })
-          corriges++
-          updated = true
+          traite = true
           break
         }
       }
-      if (!updated) ignores++
+      if (!traite) ignores++
     }
 
-    return NextResponse.json({ success: true, corriges, ignores })
+    return NextResponse.json({ success: true, corriges, gardes, ignores })
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
   }

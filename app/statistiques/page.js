@@ -197,13 +197,16 @@ export default function StatistiquesPage() {
           <div className="card">
             <div className="card-title">📈 Évolution hebdomadaire</div>
             <div style={{ overflowX: 'auto' }}>
-              <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', minWidth: stats.par_semaine.length * 28, height: 80, padding: '4px 0' }}>
+              <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', minWidth: stats.par_semaine.length * 28, height: 110, padding: '4px 0' }}>
                 {stats.par_semaine.map(s => {
                   const maxSem = Math.max(...stats.par_semaine.map(x => x.total_minutes))
                   const h = maxSem > 0 ? Math.round((s.total_minutes / maxSem) * 70) : 0
                   const label = s.semaine.replace('20','').replace('-W','S')
                   return (
                     <div key={s.semaine} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                      <div style={{ fontSize: 8, color: 'var(--text2)', fontWeight: 500, whiteSpace: 'nowrap', marginBottom: 2 }}>
+                        {s.total}
+                      </div>
                       <div title={`${s.semaine} : ${s.total}`}
                         style={{ width: 20, height: h, background: '#2E86C1', borderRadius: '3px 3px 0 0', minHeight: 2 }} />
                       <div style={{ fontSize: 8, color: 'var(--text3)', transform: 'rotate(-45deg)', transformOrigin: 'top left', marginTop: 6, whiteSpace: 'nowrap' }}>
